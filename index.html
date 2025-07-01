@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 모델 뷰어</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <h1>3D 포트폴리오</h1>
+            </div>
+            <div class="navbar-info">
+                <span class="status-indicator" id="connectionStatus">연결됨</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="viewer-container">
+            <div class="viewer-header">
+                <h2>3D 모델 뷰어</h2>
+                <p>마우스로 드래그하여 회전, 휠로 확대/축소, 클릭하여 상호작용</p>
+            </div>
+            
+            <!-- Loading Screen -->
+            <div class="loading-screen" id="loadingScreen">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">
+                    <h3>로딩 중...</h3>
+                    <p id="loadingProgress">라이브러리를 불러오는 중...</p>
+                </div>
+            </div>
+
+            <!-- Error Screen -->
+            <div class="error-screen hidden" id="errorScreen">
+                <div class="error-content">
+                    <h3>⚠️ 모델 로딩 실패</h3>
+                    <p id="errorMessage">GLB 파일을 불러올 수 없습니다. 기본 큐브를 표시합니다.</p>
+                    <button class="btn btn--primary" onclick="retryLoading()">다시 시도</button>
+                </div>
+            </div>
+
+            <!-- 3D Canvas Container -->
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="threejs-canvas"></canvas>
+                <div class="canvas-overlay">
+                    <div class="controls-info">
+                        <div class="control-item">
+                            <span class="control-icon">🖱️</span>
+                            <span>드래그: 회전</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">🎯</span>
+                            <span>휠: 확대/축소</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">👆</span>
+                            <span>클릭: 상호작용</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Info Panel -->
+            <div class="info-panel">
+                <div class="card">
+                    <div class="card__body">
+                        <h4>모델 정보</h4>
+                        <div class="model-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">상태:</span>
+                                <span class="stat-value" id="modelStatus">로딩 중...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">파일:</span>
+                                <span class="stat-value">a.glb</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">위치:</span>
+                                <span class="stat-value">./models/a.glb</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts: Using jsDelivr CDN for better reliability -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // Fallback script loading with timeout
+        let scriptsLoaded = 0;
+        const totalScripts = 3;
+        let loadTimeout;
+        
+        function checkScriptsLoaded() {
+            scriptsLoaded++;
+            if (scriptsLoaded === totalScripts) {
+                clearTimeout(loadTimeout);
+                initApp();
+            }
+        }
+        
+        function initApp() {
+            const script = document.createElement('script');
+            script.src = 'app.js';
+            script.onload = () => console.log('앱 스크립트가 로드되었습니다.');
+            document.head.appendChild(script);
+        }
+        
+        // Set timeout for library loading
+        loadTimeout = setTimeout(() => {
+            console.log('라이브러리 로딩 타임아웃 - 기본 기능으로 진행');
+            initApp();
+        }, 5000);
+        
+        // Check if scripts are already loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add load event listeners to scripts
+            const scripts = document.querySelectorAll('script[src*="three"]');
+            scripts.forEach(script => {
+                script.onload = checkScriptsLoaded;
+                script.onerror = () => {
+                    console.error('스크립트 로딩 실패:', script.src);
+                    checkScriptsLoaded(); // Continue anyway
+                };
+            });
+        });
+    </script>
+</body>
+</html>
